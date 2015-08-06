@@ -64,6 +64,7 @@ PrPixelTracking::PrPixelTracking(const std::string &name, ISvcLocator *pSvcLocat
   declareProperty("RunOnRawBanks", m_runOnRawBanks = true);
   declareProperty("MaxClusterSize", m_maxClusterSize = PrPixel::SENSOR_PIXELS);
   declareProperty("Trigger", m_trigger = false);
+  m_debug = m_isDebug = true;
 }
 
 //=============================================================================
@@ -224,7 +225,6 @@ void PrPixelTracking::makeLHCbTracks() {
     newTrack->setType(LHCb::Track::Velo);
     newTrack->setHistory(LHCb::Track::PatFastVelo);
     newTrack->setPatRecStatus(LHCb::Track::PatRecIDs);
-    m_debug = m_isDebug = true;
     if (m_debug) {
       info() << "fuck" << endmsg;
       info() << "=== Store track Nb " << outputTracks->size() << "\tnhits "
