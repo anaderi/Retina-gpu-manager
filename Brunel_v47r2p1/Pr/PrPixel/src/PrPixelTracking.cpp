@@ -188,7 +188,7 @@ StatusCode PrPixelTracking::execute() {
   } catch (...) {
     error() << "submission failed; reason unknown" << endmsg;
   }
-
+  m_debug = true;
   if (m_doTiming) m_timerTool->stop(m_timePairs);
 
   // Convert temporary tracks to LHCb tracks.
@@ -224,7 +224,9 @@ void PrPixelTracking::makeLHCbTracks() {
     newTrack->setType(LHCb::Track::Velo);
     newTrack->setHistory(LHCb::Track::PatFastVelo);
     newTrack->setPatRecStatus(LHCb::Track::PatRecIDs);
+    m_debug = m_isDebug = true;
     if (m_debug) {
+      info() << "fuck" << endmsg;
       info() << "=== Store track Nb " << outputTracks->size() << "\tnhits "
              << (*itt).hits().size() << endmsg;
       printTrack(*itt);

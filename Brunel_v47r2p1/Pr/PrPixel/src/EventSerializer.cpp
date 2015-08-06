@@ -132,15 +132,21 @@ vector<PrPixelTrack> EventSerializer::deserializeTracks(const Data & data) const
   for (size_t i = 0; i != count; ++i) {
     const GpuTrack & t = gpuTracks[i];
 
-    if (t.hitsNum > MAX_TRACK_SIZE) {
+    if (t.hitsNum < 1 || t.hitsNum > MAX_TRACK_SIZE) {
       ostringstream msg;
       ostringstream() << "invalid track hitsNum: " << t.hitsNum;
       throw runtime_error(msg.str());
     }
-
+    if (i == 0)
+    {
+      for (size_t i = 0; i != t.hitsNum; ++i) {
+        auto hit = *m_hits.at(t.hits[i]);
+        std::cerr << "x: " << hit.x() << ", y: " << hit.y() << "z: " << hit.z() << std::endl;
+      }
+    }
     tracks.push_back(PrPixelTrack(mapHits(t, m_hits)));
   }
-
+  //std::cerr << tracks[0].m_hits[0]->x() << std::endl;
   return tracks;
 }
 

@@ -11,12 +11,14 @@ use GpuHandler  * GpuManager
 
 # main constituent
 document cuda_library PrPixelCuda \
-  GpuPixelSearchByTriplet.cpp     \
-  Kernel.cu                       \
-  KernelInvoker.cu                \
   Logger.cpp                      \
   PrPixelCudaHandler.cpp          \
-  Tools.cu
+  Grid.cpp                        \
+  IndependentEntrypoint.cpp       \
+  Logger.cpp                      \
+  Physics.cpp                     \
+  Retina.cpp                      \
+  Tools.cpp                       
 
 # the server uses Gaudi components to load handlers
 # declare the constituent as a component library
