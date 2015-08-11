@@ -95,18 +95,22 @@ std::vector<Track> findHits(
   std::vector<Track> extendedTracks;
   extendedTracks.reserve(tracks.size());
   std::set<std::vector<uint32_t> > tracksSet;
-  std::vector<bool> used;
+  std::vector<bool> used(hits.size(), false);
   for (const TrackPure& track: tracks)
   {
 
     std::map<uint32_t, Hit> sensorsBest;
-    for (const Hit& hit: hits) 
+    for (size_t i = 0; i < hits.size(); ++i)
     {
-      if (!sensorsBest.count(hit.sensorId) ||
-          (getDistance(track, sensorsBest[hit.sensorId]) > 
-          getDistance(track, hit)))
+      if (!used[i])
       {
-        sensorsBest[hit.sensorId] = hit;
+        const Hit& hit = hits[i];
+        if (!sensorsBest.count(hit.sensorId) ||
+            (getDistance(track, sensorsBest[hit.sensorId]) > 
+            getDistance(track, hit)))
+        {
+          sensorsBest[hit.sensorId] = hit;
+        }
       }
     }
     std::vector<std::pair<double, Hit> > distances;
@@ -134,6 +138,10 @@ std::vector<Track> findHits(
     }
     if (extended.hitsNum > 2)
     {
+      for (size_t i = 0; i < extended.hitsNum; ++i)
+      {
+        used[extended.hits[i]] = true;
+      }
       extendedTracks.push_back(extended);
     }
   }
