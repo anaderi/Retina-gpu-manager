@@ -1,4 +1,3 @@
-#include "GpuPixelSearchByTriplet.h"
 #include "PrPixelCudaHandler.h"
 #include "Retina.h"
 

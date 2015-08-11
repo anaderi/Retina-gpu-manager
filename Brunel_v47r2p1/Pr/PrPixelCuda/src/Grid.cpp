@@ -2,27 +2,39 @@
 
 #include "Grid.h"
 
-
-double Dimension::getGridBoarder(int index) const
+std::vector<double> generateUniformDimension(double min, double max, size_t size)
 {
-  if (index < 0 || index >= gridSize)
-    throw std::logic_error("Bad index of gridBoarder");
-  return min + quant * index;
+  std::vector<double> dimension(size + 2);
+  double quant = (max - min) / (size - 1);
+  dimension[0] =  min - quant;
+  for(size_t i = 0; i <= size; i++)
+  {
+    dimension[i + 1] = dimension[i] + quant;
+  }
+  return std::move(dimension);
 }
 
-int calculateGridSize(const std::vector<Dimension>& dimensions, const int noBoarders)
+
+int calculateGridSize(
+  const std::vector<std::vector<double> >& dimensions, 
+  const int noBoarders
+)
 {
   int ans = 1;
-  for (const Dimension& dimension : dimensions)
-    ans *= dimension.gridSize - 2 * noBoarders;
+  for (const std::vector<double>& dimension : dimensions)
+    ans *= dimension.size() - 2 * noBoarders;
   return ans;
 }
 
-void generateNextMultiIndex(std::vector<int>& multiIndex, const std::vector<Dimension>& dimensions, int noBoarders)
+void generateNextMultiIndex(
+  std::vector<int>& multiIndex, 
+  const std::vector<std::vector<double> >& dimensions, 
+  int noBoarders
+)
 {
   multiIndex[0]++;
   int i = 0;
-  while (multiIndex[i] == dimensions[i].gridSize - noBoarders)
+  while (multiIndex[i] == dimensions[i].size() - noBoarders)
   {
     multiIndex[i] = noBoarders;
     ++multiIndex[i + 1];
@@ -30,17 +42,23 @@ void generateNextMultiIndex(std::vector<int>& multiIndex, const std::vector<Dime
   }
 }
 
-int multiIndexToIndex(const std::vector<int>& multiIndex, const std::vector<Dimension>& dimensions)
+int multiIndexToIndex(
+  const std::vector<int>& multiIndex, 
+  const std::vector<std::vector<double> >& dimensions
+)
 {
   int index = multiIndex[multiIndex.size() - 1];
   for (int i = multiIndex.size() - 2; i >= 0; --i)
   {
-    index = index * dimensions[i + 1].gridSize + multiIndex[i];
+    index = index * dimensions[i + 1].size() + multiIndex[i];
   }
   return index;
 }
 
-std::vector<int> generateNeighboursIndexes(const std::vector<int>& multiIndex, const std::vector<Dimension>& dim)
+std::vector<int> generateNeighboursIndexes(
+  const std::vector<int>& multiIndex, 
+  const std::vector<std::vector<double> >& dim
+)
 {
   std::vector<int> neighbours;
   neighbours.reserve(multiIndex.size() * 2);

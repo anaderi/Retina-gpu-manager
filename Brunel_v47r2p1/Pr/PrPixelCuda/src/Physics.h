@@ -14,7 +14,7 @@ const int GRID_SIZE_DY_OVER_DZ = GRID_SIZE;
 
 const double RETINA_SHARPNESS_COEFFICIENT = 0.001;
 const double HIT_THRESHOLD = 0.05;
-const double TRACK_THRESHOLD = 0.9999;
+const double TRACK_THRESHOLD = 0.99;
 const size_t MAX_TRACK_SIZE = 24;
         
 struct Hit {
@@ -39,15 +39,13 @@ struct Hit {
 };
 
 struct TrackPure { 
-    //coefficients of lineEquation x = track.xOnZ0 + track.dxOverDz * z
-    //                            y = track.yOnZ0 + track.dyOverDz * z;
-    // todo: float -> double
 public:
   double xOnZ0;
   double yOnZ0;
   double dxOverDz;
   double dyOverDz;
-  TrackPure(double x0, double y0, double tx, double ty) noexcept : xOnZ0(x0), yOnZ0(y0), dxOverDz(tx), dyOverDz(ty)  {}
+  TrackPure(double x0, double y0, double tx, double ty) noexcept : 
+    xOnZ0(x0), yOnZ0(y0), dxOverDz(tx), dyOverDz(ty)  {}
   TrackPure(const Hit&, const Hit&);
   TrackPure() = default;
 };
@@ -78,4 +76,4 @@ struct EventInfo
 
 double getDistance(const TrackPure& track, const Hit& hit) noexcept;
 
-std::vector<Dimension> generateDimensions(const EventInfo& event);
+std::vector<std::vector<double> > generateDimensions(const EventInfo& event);

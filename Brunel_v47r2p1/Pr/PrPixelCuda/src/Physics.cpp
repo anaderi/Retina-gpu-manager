@@ -40,7 +40,7 @@ double getDistance(const TrackPure& track, const Hit& hit) noexcept
          square(hit.y - track.yOnZ0 - track.dyOverDz * hit.z);
 }
 
-std::vector<Dimension> generateDimensions(const EventInfo& event)
+std::vector<std::vector<double> > generateDimensions(const EventInfo& event)
 {
   double minX0, maxX0;
   double minY0, maxY0;
@@ -67,11 +67,11 @@ std::vector<Dimension> generateDimensions(const EventInfo& event)
       }
     }
   }
-  std::cerr << "Dimenstions generated" << std::endl;
-  return std::vector<Dimension> {
-        Dimension(minX0, maxX0, GRID_SIZE_X_ON_Z0),
-        Dimension(minY0, maxY0, GRID_SIZE_Y_ON_Z0),
-        Dimension(minDx, maxDx, GRID_SIZE_DX_OVER_DZ),
-        Dimension(minDy, maxDy, GRID_SIZE_DY_OVER_DZ)
+  std::cerr << "Dimensions generated" << std::endl;
+  return std::vector<std::vector<double> > {
+        generateUniformDimension(minX0, maxX0, GRID_SIZE_X_ON_Z0),
+        generateUniformDimension(minY0, maxY0, GRID_SIZE_Y_ON_Z0),
+        generateUniformDimension(minDx, maxDx, GRID_SIZE_DX_OVER_DZ),
+        generateUniformDimension(minDy, maxDy, GRID_SIZE_DY_OVER_DZ)
   };
 }
