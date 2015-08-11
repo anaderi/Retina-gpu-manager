@@ -1,7 +1,8 @@
 #include "Physics.h"
 
-#include<iostream>
+#include <iostream>
 #include <limits>
+#include <cmath>
 TrackPure operator*(const TrackPure& one, const double alpha)
 {
   return TrackPure(
@@ -42,36 +43,27 @@ double getDistance(const TrackPure& track, const Hit& hit) noexcept
 
 std::vector<std::vector<double> > generateDimensions(const EventInfo& event)
 {
-  double minX0, maxX0;
-  double minY0, maxY0;
-  double minDx, maxDx;
-  double minDy, maxDy;
-  minX0 = minY0 = minDx = minDy = std::numeric_limits<double>::max();
-  maxX0 = maxY0 = maxDx = maxDy = std::numeric_limits<double>::min();
-  
-  for (size_t i = 0; i < event.hits.size(); ++i)
-  {
-    for (size_t j = 0; j < i; j++)
-    {
-      if (event.hits[i].sensorId != event.hits[j].sensorId)
-      {
-        TrackPure t(event.hits[i], event.hits[j]);
-        minX0 = std::min(minX0, t.xOnZ0);
-        maxX0 = std::max(maxX0, t.xOnZ0);
-        minY0 = std::min(minY0, t.yOnZ0);
-        maxY0 = std::max(maxY0, t.yOnZ0);
-        minDx = std::min(minDx, t.dxOverDz);
-        maxDx = std::max(maxDx, t.dxOverDz);
-        minDy = std::min(minDy, t.dyOverDz);
-        maxDy = std::max(maxDy, t.dyOverDz);
-      }
-    }
-  }
-  std::cerr << "Dimensions generated" << std::endl;
+  /*return std::vector<std::vector<double> > {
+        generateUniformDimension(-1, 1, GRID_SIZE_X_ON_Z0),
+        generateUniformDimension(-1, 1, GRID_SIZE_Y_ON_Z0),
+        generateUniformDimension(-0.01, 0.01, GRID_SIZE_DX_OVER_DZ),
+        generateUniformDimension(-0.01, 0.01, GRID_SIZE_DY_OVER_DZ)
+  };*/
   return std::vector<std::vector<double> > {
-        generateUniformDimension(minX0, maxX0, GRID_SIZE_X_ON_Z0),
-        generateUniformDimension(minY0, maxY0, GRID_SIZE_Y_ON_Z0),
-        generateUniformDimension(minDx, maxDx, GRID_SIZE_DX_OVER_DZ),
-        generateUniformDimension(minDy, maxDy, GRID_SIZE_DY_OVER_DZ)
+        generateGaussDimension(0, 12, GRID_SIZE_X_ON_Z0),
+        generateGaussDimension(0, 12, GRID_SIZE_Y_ON_Z0),
+        generateGaussDimension(0, 0.1, GRID_SIZE_DX_OVER_DZ),
+        generateGaussDimension(0, 0.1, GRID_SIZE_DY_OVER_DZ)
   };
+  
+}
+
+bool isFit(const TrackPure& track, const Hit& hit, double zStart) noexcept
+{
+  double dx = fabs(hit.x - track.xOnZ0 - track.dxOverDz * hit.z);
+  double dy = fabs(hit.y - track.yOnZ0 - track.dyOverDz * hit.z);
+  double scatterNum = dx * dx + dy * dy;
+  double scatterNorm = 1 / (hit.z - zStart);
+  double scatter = scatterNum * scatterNorm * scatterNorm;
+  return dx < PARAM_TOLERANCE && dy < PARAM_TOLERANCE && scatter < SCATTER_TOLERANCE;
 }

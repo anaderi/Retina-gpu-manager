@@ -47,8 +47,8 @@ std::vector<TrackPure> restoreTracks(
         isLocalMaximum = false;
       }
     }
-    isLocalMaximum = /*isLocalMaxumum ||*/ (responces[currentIndex] > threshold);
-    if (isLocalMaximum)
+    //isLocalMaximum = /*isLocalMaxumum ||*/ (responces[currentIndex] > threshold);
+    if (isLocalMaximum && responces[currentIndex] > 1e-5)
     {
       TrackPure answer = grid[currentIndex] * responces[currentIndex];
       double sum_responce = responces[currentIndex];
@@ -57,7 +57,12 @@ std::vector<TrackPure> restoreTracks(
         answer = answer + grid[neighbour] * responces[neighbour];
         sum_responce += responces[neighbour];
       }
-      restored.push_back(answer * (1.0 / sum_responce));      
+      //std::cerr << responces[currentIndex] << "->" << sum_responce << std::endl;
+      const TrackPure track = answer * (1.0 / sum_responce);
+      restored.push_back(track);      
+      /*std::cerr << track.xOnZ0 << "," << track.yOnZ0 
+        << "," << track.dxOverDz << "," 
+        << track.dyOverDz << std::endl; */
     }
     generateNextMultiIndex(indexes, dimensions, 1);
   }
@@ -90,11 +95,9 @@ std::vector<Track> findHits(
   std::vector<Track> extendedTracks;
   extendedTracks.reserve(tracks.size());
   std::set<std::vector<uint32_t> > tracksSet;
+  std::vector<bool> used;
   for (const TrackPure& track: tracks)
   {
-    std::cerr << track.xOnZ0 << "," << track.yOnZ0 
-      << "," << track.dxOverDz << "," 
-      << track.dyOverDz << std::endl; 
 
     std::map<uint32_t, Hit> sensorsBest;
     for (const Hit& hit: hits) 
@@ -118,10 +121,16 @@ std::vector<Track> findHits(
         return a.first < b.first;
       }
     );
-    //todo:add treshhold
-    for (int i = 0; i < 3; i++)
     {
-      extended.addHit(distances[i].second.id);
+      double zStart = distances[0].second.z;
+      extended.addHit(distances[0].second.id);
+      for (size_t i = 1; i < distances.size(); i++)
+      {
+        if (isFit(track, distances[i].second, zStart))
+        {
+          extended.addHit(distances[i].second.id);
+        }
+      }
     }
     if (extended.hitsNum > 2)
     {

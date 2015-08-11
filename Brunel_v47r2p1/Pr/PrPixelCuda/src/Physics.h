@@ -6,16 +6,18 @@
 #include <cstdint>
 #include <stdexcept>
 
-const int GRID_SIZE = 10;
+const int GRID_SIZE = 30;
 const int GRID_SIZE_X_ON_Z0 = GRID_SIZE;
 const int GRID_SIZE_Y_ON_Z0 = GRID_SIZE;
 const int GRID_SIZE_DX_OVER_DZ = GRID_SIZE;
 const int GRID_SIZE_DY_OVER_DZ = GRID_SIZE;
 
-const double RETINA_SHARPNESS_COEFFICIENT = 0.001;
-const double HIT_THRESHOLD = 0.05;
-const double TRACK_THRESHOLD = 0.99;
+const double RETINA_SHARPNESS_COEFFICIENT = 0.6;
+const double TRACK_THRESHOLD = 0.9999;
 const size_t MAX_TRACK_SIZE = 24;
+const double PARAM_TOLERANCE = 0.6;
+const double SCATTER_TOLERANCE = 0.000016;
+
         
 struct Hit {
   float x;
@@ -77,3 +79,5 @@ struct EventInfo
 double getDistance(const TrackPure& track, const Hit& hit) noexcept;
 
 std::vector<std::vector<double> > generateDimensions(const EventInfo& event);
+
+bool isFit(const TrackPure& track, const Hit& hit, double zStart) noexcept;

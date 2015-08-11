@@ -5,6 +5,9 @@
 
 std::vector<double> generateUniformDimension(double min, double max, size_t size);
 
+std::vector<double> generateGaussDimension(double mean, double sd, size_t size);
+
+
 int calculateGridSize(
   const std::vector<std::vector<double> >& dimensions, 
   const int noBoarders

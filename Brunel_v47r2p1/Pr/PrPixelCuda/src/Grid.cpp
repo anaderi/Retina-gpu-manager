@@ -1,4 +1,5 @@
 #include <stdexcept>
+#include <algorithm>
 
 #include "Grid.h"
 
@@ -14,6 +15,18 @@ std::vector<double> generateUniformDimension(double min, double max, size_t size
   return std::move(dimension);
 }
 
+std::vector<double> generateGaussDimension(double mean, double sd, size_t size)
+{
+  std::default_random_engine generator;
+  std::normal_distribution<double> distribution(mean, sd);
+  std::vector<double> dimension(size);
+  for (size_t i = 0; i < size; i++)
+  {
+    dimension[i] = distribution(generator);
+  }
+  std::sort(dimension.begin(), dimension.end());
+  return std::move(dimension);
+}
 
 int calculateGridSize(
   const std::vector<std::vector<double> >& dimensions, 
