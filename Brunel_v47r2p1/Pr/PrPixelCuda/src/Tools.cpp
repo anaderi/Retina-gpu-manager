@@ -98,7 +98,7 @@ std::vector<uint8_t> putTracksInOutputFormat(
   return output;
 }
 
-void printHit(const Hit& hit, std::ostream& stream) 
+/*void printHit(const Hit& hit, std::ostream& stream) 
 {
   stream << " " << std::setw(8) << hit.id 
     << " module " << std::setw(2) << hit.sensorId
@@ -137,7 +137,7 @@ void printSolution(
 
   stream << std::endl;
 }
-
+*/
 double getQuatile(std::vector<double> data, double ratio)
 {
   std::sort(data.begin(), data.end());

@@ -1,9 +1,9 @@
 #pragma once
 
+#include "Physics.h"
+
 #include <vector>
 #include <cstdint>
-
-#include "Physics.h"
 
 EventInfo parseEvent(const uint8_t * input, size_t size);
 

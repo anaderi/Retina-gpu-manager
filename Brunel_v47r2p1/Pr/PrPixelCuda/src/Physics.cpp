@@ -1,4 +1,6 @@
 #include "Physics.h"
+
+#include<iostream>
 #include <limits>
 TrackPure operator*(const TrackPure& one, const double alpha)
 {
@@ -23,8 +25,8 @@ TrackPure::TrackPure(const Hit& a, const Hit& b)
 {
   dxOverDz = (b.x - a.x) / (b.z - a.z);
   dyOverDz = (b.y - a.y) / (b.z - a.z);
-  xOnZ0 = a.x - a.z * tx;
-  yOnZ0 = a.y - a.z * ty;
+  xOnZ0 = a.x - a.z * dxOverDz;
+  yOnZ0 = a.y - a.z * dyOverDz;
 }
 
 inline double square(double x)
@@ -40,12 +42,12 @@ double getDistance(const TrackPure& track, const Hit& hit) noexcept
 
 std::vector<Dimension> generateDimensions(const EventInfo& event)
 {
-  float minX0, maxX0;
-  float minY0, maxY0;
-  float minDx, maxDx;
-  float minDy, maxDy;
-  minX0 = minY0 = minDx = minDy = numeric_limits<double>::max();
-  maxX0 = maxY0 = maxDx = maxDy = numeric_limits<double>::min();
+  double minX0, maxX0;
+  double minY0, maxY0;
+  double minDx, maxDx;
+  double minDy, maxDy;
+  minX0 = minY0 = minDx = minDy = std::numeric_limits<double>::max();
+  maxX0 = maxY0 = maxDx = maxDy = std::numeric_limits<double>::min();
   
   for (size_t i = 0; i < event.hits.size(); ++i)
   {
@@ -65,5 +67,11 @@ std::vector<Dimension> generateDimensions(const EventInfo& event)
       }
     }
   }
-  return 
+  std::cerr << "Dimenstions generated" << std::endl;
+  return std::vector<Dimension> {
+        Dimension(minX0, maxX0, GRID_SIZE_X_ON_Z0),
+        Dimension(minY0, maxY0, GRID_SIZE_Y_ON_Z0),
+        Dimension(minDx, maxDx, GRID_SIZE_DX_OVER_DZ),
+        Dimension(minDy, maxDy, GRID_SIZE_DY_OVER_DZ)
+  };
 }
