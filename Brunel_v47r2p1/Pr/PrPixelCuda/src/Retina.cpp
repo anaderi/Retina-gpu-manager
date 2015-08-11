@@ -106,13 +106,22 @@ std::vector<Track> findHits(
         sensorsBest[hit.sensorId] = hit;
       }
     }
+    std::vector<std::pair<double, Hit> > distances;
     Track extended;
     for (const auto& pair: sensorsBest)
     {
-      if (pair.first < 0.6)
+      distances.emplace_back(getDistance(track, pair.second), pair.second);
+    }
+    std::sort(distances.begin(), distances.end(), 
+      [](const std::pair<double, Hit>& a, const std::pair<double, Hit>& b) -> bool
       {
-        extended.addHit(pair.second.id);
+        return a.first < b.first;
       }
+    );
+    //todo:add treshhold
+    for (int i = 0; i < 3; i++)
+    {
+      extended.addHit(distances[i].second.id);
     }
     if (extended.hitsNum > 2)
     {
