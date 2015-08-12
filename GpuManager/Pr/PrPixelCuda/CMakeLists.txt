@@ -8,6 +8,6 @@ set(CUDA_PROPAGATE_HOST_FLAGS OFF)
 
 gaudi_add_cuda_module(
   PrPixelCuda
-  src/*.cpp src/*.cu
+  src/*.cpp #src/*.cu
   INCLUDE_DIRS GpuHandler CUDA
   LINK_LIBRARIES GpuHandler CUDA)
