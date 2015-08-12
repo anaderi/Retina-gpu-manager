@@ -54,7 +54,7 @@ RecMoniConf().MoniSequence = [ ]
 
 # Database
 from Configurables import CondDB, LHCbApp
-LHCbApp().EvtMax = 100
+LHCbApp().EvtMax = 1
 LHCbApp().Simulation = True
 LHCbApp().DDDBtag = "dddb-20131025"
 LHCbApp().CondDBtag = "sim-20130830-vc-md100"

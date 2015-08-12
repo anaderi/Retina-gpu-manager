@@ -26,9 +26,9 @@
 /**
  * execute entrypoint of algorithm
  * Same signature as offloaded gaudi-algorithm
- *
- * @param output
- * @param input
+ * 
+ * @param output 
+ * @param input  
  */
 extern int independent_execute(
     const std::vector<std::vector<unsigned char> >& input,
@@ -36,13 +36,13 @@ extern int independent_execute(
 
 /**
  * Post execution entrypoint
- * @param output
+ * @param output 
  */
 extern void independent_post_execute(
     const std::vector<std::vector<unsigned char> >& output);
 
 
-void printUsage(char* argv[]) {
+void printUsage(char* argv[]){
     std::cerr << "Usage: "
         << argv[0] << " <comma separated input filenames>"
         << std::endl;
@@ -62,8 +62,8 @@ public:
 
 /**
  * Checks file existence
- * @param  name
- * @return
+ * @param  name 
+ * @return      
  */
 bool fileExists (const std::string& name) {
     if (FILE *file = fopen(name.c_str(), "r")) {
@@ -71,7 +71,7 @@ bool fileExists (const std::string& name) {
         return true;
     } else {
         return false;
-    }
+    }   
 }
 
 /**
@@ -85,9 +85,9 @@ bool fileExists (const std::string& name) {
  * int dataSize
  * char* data
  */
-void readFileIntoVector(std::string filename, std::vector<unsigned char> & output) {
+void readFileIntoVector(std::string filename, std::vector<unsigned char> & output){
     // Check if file exists
-    if (!fileExists(filename)) {
+    if (!fileExists(filename)){
         throw StrException("Error: File " + filename + " does not exist.");
     }
 
@@ -124,14 +124,14 @@ void readFileIntoVector(std::string filename, std::vector<unsigned char> & outpu
 /**
  * This is if the function is called on its own
  * (ie. non-gaudi execution)
- *
+ * 
  * In that case, the file input is expected.
  * As a convention, multiple files would be specified
  * with comma-separated values
- *
+ * 
  * @param  argc
  * @param  argv
- * @return
+ * @return     
  */
 int main(int argc, char *argv[])
 {
@@ -141,16 +141,16 @@ int main(int argc, char *argv[])
     std::vector<std::vector<unsigned char> > input;
 
     // Get params (getopt independent)
-    if (argc != 2) {
+    if (argc != 2){
         printUsage(argv);
         return 0;
     }
-
+    
     filename = std::string(argv[1]);
 
     // Check how many files were specified and
     // call the entrypoint with the suggested format
-    if(filename.empty()) {
+    if(filename.empty()){
         std::cerr << "No filename specified" << std::endl;
         printUsage(argv);
         return -1;
@@ -161,17 +161,17 @@ int main(int argc, char *argv[])
     int input_index = 0;
 
     size_t posFound = filename.find(delimiter);
-    if (posFound != std::string::npos) {
+    if (posFound != std::string::npos){
         size_t prevFound = 0;
-        while(prevFound != std::string::npos) {
-            if (posFound == std::string::npos) {
-                readFileIntoVector(filename.substr(prevFound, posFound-prevFound), input[input_index]);
+        while(prevFound != std::string::npos){
+            if (posFound == std::string::npos){
+                readFileIntoVector(filename.substr(prevFound, posFound), input[input_index]);
                 prevFound = posFound;
             }
             else {
-                readFileIntoVector(filename.substr(prevFound, posFound-prevFound), input[input_index]);
+                readFileIntoVector(filename.substr(prevFound, posFound), input[input_index]);
                 prevFound = posFound + 1;
-                posFound = filename.find(delimiter, posFound + 1);
+                posFound = filename.find(delimiter, posFound+1);
             }
             input_index++;
         }
@@ -181,15 +181,15 @@ int main(int argc, char *argv[])
     }
 
     // Print out first byte from formatter->inputPointer
-    std::cout << input.size() << " files read" << std::endl;
-    // std::cout << "Sizes: ";
-    // for (int i=0; i<input.size(); ++i) {
-    //     std::cout << input[i].size();
-    //     if (i != input.size()-1) std::cout << ", ";
-    // }
+    std::cout << "Files read: " << input.size() << std::endl << "Sizes: ";
+
+    for (int i=0; i<input.size(); ++i){
+        std::cout << input[i].size();
+        if (i != input.size()-1) std::cout << ", ";
+    }
 
     // std::cout << std::endl << "Pointers: " << std::hex;
-    // for (int i=0; i<input.size(); ++i) {
+    // for (int i=0; i<input.size(); ++i){
     //     std::cout << "0x" << (long long int) &(input[i][0]);
     //     if (i != input.size()-1) std::cout << ", ";
     // }

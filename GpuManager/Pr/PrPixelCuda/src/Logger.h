@@ -16,7 +16,7 @@ namespace logger {
       int verbosityLevel;
       FileStdLogger discardStream;
       VoidLogger* discardLogger;
-      Logger() {
+      Logger(){
         discardLogger = new VoidLogger(&discardStream);
       }
     };

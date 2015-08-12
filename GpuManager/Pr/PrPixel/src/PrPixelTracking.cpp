@@ -64,6 +64,7 @@ PrPixelTracking::PrPixelTracking(const std::string &name, ISvcLocator *pSvcLocat
   declareProperty("RunOnRawBanks", m_runOnRawBanks = true);
   declareProperty("MaxClusterSize", m_maxClusterSize = PrPixel::SENSOR_PIXELS);
   declareProperty("Trigger", m_trigger = false);
+  m_debug = m_isDebug = true;
 }
 
 //=============================================================================
@@ -188,7 +189,7 @@ StatusCode PrPixelTracking::execute() {
   } catch (...) {
     error() << "submission failed; reason unknown" << endmsg;
   }
-
+  m_debug = true;
   if (m_doTiming) m_timerTool->stop(m_timePairs);
 
   // Convert temporary tracks to LHCb tracks.
@@ -225,6 +226,7 @@ void PrPixelTracking::makeLHCbTracks() {
     newTrack->setHistory(LHCb::Track::PatFastVelo);
     newTrack->setPatRecStatus(LHCb::Track::PatRecIDs);
     if (m_debug) {
+      info() << "fuck" << endmsg;
       info() << "=== Store track Nb " << outputTracks->size() << "\tnhits "
              << (*itt).hits().size() << endmsg;
       printTrack(*itt);
