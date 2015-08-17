@@ -6,13 +6,13 @@
 #include <cstdint>
 #include <stdexcept>
 
-const int GRID_SIZE = 30;
+const int GRID_SIZE = 8;
 const int GRID_SIZE_X_ON_Z0 = GRID_SIZE;
 const int GRID_SIZE_Y_ON_Z0 = GRID_SIZE;
 const int GRID_SIZE_DX_OVER_DZ = GRID_SIZE;
 const int GRID_SIZE_DY_OVER_DZ = GRID_SIZE;
 
-const double RETINA_SHARPNESS_COEFFICIENT = 0.6;
+const double RETINA_SHARPNESS_COEFFICIENT = 1e-3;
 const double TRACK_THRESHOLD = 0.9999;
 const size_t MAX_TRACK_SIZE = 24;
 const double PARAM_TOLERANCE = 0.6;
