@@ -170,7 +170,7 @@ TrackPure makeLocalMaximum(TrackPure track, const std::vector<Hit>& hits, double
       for (TrackPure step: steps)
       {
         double current = calculateResponses({track + step * dx}, hits, rs)[0];
-        if ( current > bestResponce + 1e-6)
+        if ( current > bestResponce + 1e-7)
         {
           update = true;
           best = track + step * dx;
@@ -535,7 +535,7 @@ TrackPure(-4.285082,-2.159868,0.236500,0.119900),
 TrackPure(0.848286,-0.042813,-0.312400,0.019800) 
     };
     
-    {
+    /*{
       std::ofstream myfile;
       myfile.open ("tracks.csv");
       myfile << "x0,y0,dx,dy,reps" << std::endl;
@@ -546,27 +546,73 @@ TrackPure(0.848286,-0.042813,-0.312400,0.019800)
           << calculateResponses({track}, hits, RETINA_SHARPNESS_COEFFICIENT)[0]<< std::endl;
       }
       myfile.close();
-    }
+    }*/
     std::vector<TrackPure> maxims;
 
     {
       std::ofstream myfile;
       myfile.open ("maxims.csv");
       myfile << "x0,y0,dx,dy,reps" << std::endl;
+      std::default_random_engine generator;
+      std::normal_distribution<double> dx(0, 0.01);
+      std::normal_distribution<double> x0(0, 0.3);
+      std::uniform_int_distribution<int> distribution(0, hits.size());  
 
-      int cnt = 0;
-      for (const TrackPure& track1: restored)
+      int cnt = 0, nw = 0;
+      while (cnt < 10000 && maxims.size() < 2000)
+      //for (size_t i = 0 ; i < )
       {
-        auto track = makeLocalMaximum(track1, hits, RETINA_SHARPNESS_COEFFICIENT);
-        maxims.push_back(track);
+        TrackPure track;
+        {
+          /*int a, b;
+          do
+          {
+            a = distribution(generator);
+            b = distribution(generator);            
+          } while (hits[a].sensorId == hits[b].sensorId);
+          track = TrackPure(hits[a], hits[b]);*/
+          track = makeLocalMaximum(
+            TrackPure(
+              x0(generator),
+              x0(generator),
+              dx(generator),
+              dx(generator)
+            ),
+            hits, 
+            RETINA_SHARPNESS_COEFFICIENT
+            );
+        }
+        if ((calculateResponses({track}, hits, RETINA_SHARPNESS_COEFFICIENT)[0] > 2.1) && 
+        std::all_of(maxims.begin(), maxims.end(), 
+          [&](TrackPure& old)
+          {
+            if (fabs(old.xOnZ0 - track.xOnZ0) > 0.1)
+              return true;
+            if (fabs(old.yOnZ0 - track.yOnZ0) > 0.1)
+              return true;
+            if (fabs(old.dxOverDz - track.dxOverDz) > 0.01)
+              return true;
+            if (fabs(old.dyOverDz - track.dyOverDz) > 0.01)
+              return true;
+            return false;
+          }) 
+          )
+        {
+          maxims.push_back(track);
+          nw = 0;
+          myfile << track.xOnZ0 << "," << track.yOnZ0 << "," 
+            << track.dxOverDz << "," << track.dyOverDz << ","
+            << calculateResponses({track}, hits, RETINA_SHARPNESS_COEFFICIENT)[0]<< std::endl;
+        }
+        else
+        {
+          nw++;
+        }
         if (++cnt % 10 == 0)
         {
-          std::cerr << cnt << " tracks procceed" << std::endl;
+          std::cerr << cnt << " tracks procceed:" << maxims.size() <<  std::endl;
         }
  
-        myfile << track.xOnZ0 << "," << track.yOnZ0 << "," 
-          << track.dxOverDz << "," << track.dyOverDz << ","
-          << calculateResponses({track}, hits, RETINA_SHARPNESS_COEFFICIENT)[0]<< std::endl;
       }
     
       myfile.close();
