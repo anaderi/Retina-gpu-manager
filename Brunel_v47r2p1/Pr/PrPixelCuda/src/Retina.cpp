@@ -34,7 +34,7 @@ std::vector<TrackPure> restoreTracks(
   std::vector<int> indexes(dimensions.size(), 1);
   std::vector<TrackPure> restored;
   
-  const double threshold = 1.9;//getQuatile(responces, TRACK_THRESHOLD);
+  //const double threshold = 1.9;//getQuatile(responces, TRACK_THRESHOLD);
   for (int i = 0; i < gridSizeNoBoarders; ++i)
   {
     std::vector<int> neighbours = generateNeighboursIndexes(indexes, dimensions);
@@ -42,12 +42,13 @@ std::vector<TrackPure> restoreTracks(
     bool isLocalMaximum = true;
     for (int neighbour : neighbours)
     {
-      if (responces[neighbour] > responces[currentIndex])
+      std::cerr << neighbour << " " << grid.size() << std::endl;
+      if (responces[neighbour] > responces[currentIndex] + 1e-8)
       {
         isLocalMaximum = false;
       }
     }
-    isLocalMaximum = /*isLocalMaxumum ||*/ (responces[currentIndex] > threshold);
+    //isLocalMaximum = /*isLocalMaxumum ||*/ (responces[currentIndex] > threshold);
     if (isLocalMaximum && responces[currentIndex] > 1e-5)
     {
       TrackPure answer = grid[currentIndex] * responces[currentIndex];
@@ -76,6 +77,7 @@ std::vector<TrackPure> restoreTracks(
 std::vector<double> calculateResponses(
   const std::vector<TrackPure>& grid,
   const std::vector<Hit>& hits,
+  const std::function<double(TrackPure,Hit)> distance,
   double sharpness
 )
 {
@@ -85,10 +87,37 @@ std::vector<double> calculateResponses(
     auto& track = grid[i];
     for (const Hit& hit : hits)
     {
-      responces[i] += exp(-getDistance(track, hit) / sharpness);
+      responces[i] += exp(-distance(track, hit) / sharpness);
     }
   }
   return responces;
+}
+std::vector<std::pair<double, Hit> > findHitsOnSensor(  
+  const std::vector<Hit>& hits,
+  const TrackPure& track,
+  const std::function<double(TrackPure,Hit)> distance
+)
+{
+  std::vector<std::pair<double, Hit> > distances;
+  std::map<uint32_t, Hit> sensorsBest;
+
+  for (size_t i = 0; i < hits.size(); ++i)
+  {
+    {
+      const Hit& hit = hits[i];
+      if (!sensorsBest.count(hit.sensorId) ||
+          (distance(track, sensorsBest[hit.sensorId]) > 
+          distance(track, hit)))
+      {
+        sensorsBest[hit.sensorId] = hit;
+      }
+    }
+  }
+  for (const auto& pair: sensorsBest)
+  {
+    distances.emplace_back(getDistance(track, pair.second), pair.second);
+  }
+  return distances;
 }
 
 std::vector<Track> findHits(
@@ -100,29 +129,15 @@ std::vector<Track> findHits(
   extendedTracks.reserve(tracks.size());
   std::set<std::vector<uint32_t> > tracksSet;
   std::vector<bool> used(hits.size(), false);
+  int cnt = 0;
   for (const TrackPure& track: tracks)
   {
-
-    std::map<uint32_t, Hit> sensorsBest;
-    for (size_t i = 0; i < hits.size(); ++i)
+    if (++cnt % 1000 == 0)
     {
-      //if (!used[i])
-      {
-        const Hit& hit = hits[i];
-        if (!sensorsBest.count(hit.sensorId) ||
-            (getDistance(track, sensorsBest[hit.sensorId]) > 
-            getDistance(track, hit)))
-        {
-          sensorsBest[hit.sensorId] = hit;
-        }
-      }
+      std::cerr << cnt << " tracks proceed" << std::endl;
     }
-    std::vector<std::pair<double, Hit> > distances;
+    std::vector<std::pair<double, Hit> > distances = findHitsOnSensor(hits, track, getDistance) ;
     Track extended;
-    for (const auto& pair: sensorsBest)
-    {
-      distances.emplace_back(getDistance(track, pair.second), pair.second);
-    }
     std::sort(distances.begin(), distances.end(), 
       [](const std::pair<double, Hit>& a, const std::pair<double, Hit>& b) -> bool
       {
@@ -134,7 +149,7 @@ std::vector<Track> findHits(
       extended.addHit(distances[0].second.id);
       for (size_t i = 1; i < 3; /*distances.size()*/ i++)
       {
-        //if (isFit(track, distances[i].second, zStart))
+        if (isFit(track, distances[i].second, zStart))
         {
           extended.addHit(distances[i].second.id);
         }
@@ -152,6 +167,7 @@ std::vector<Track> findHits(
         
   return extendedTracks;
 }
+/*
 TrackPure makeLocalMaximum(TrackPure track, const std::vector<Hit>& hits, double rs) {
   std::vector<TrackPure> steps = {
     TrackPure(1, 0, 0, 0),
@@ -192,6 +208,28 @@ TrackPure makeLocalMaximum(TrackPure track, const std::vector<Hit>& hits, double
   }
   return track;
 }
+ * */
+
+void outputBest(
+  const std::vector<TrackPure>& tracks,
+  const std::vector<Hit>& hits,
+  const std::function<double(TrackPure,Hit)> distance,
+  std::string name
+)
+{
+  std::ofstream myfile;
+  myfile.open (name);
+  for (const TrackPure& track: tracks)
+  {
+    auto bst = findHitsOnSensor(hits, track, distance);
+    for (auto p: bst)
+    {
+      myfile << p.second.id << " ";
+    }
+    myfile << std::endl;
+  }
+  myfile.close();
+}
 /**
  * Common entrypoint for Gaudi and non-Gaudi
  * @param input  
@@ -206,97 +244,63 @@ int cpuRetinaInvocation(
   for (size_t i = 0; i < input.size(); ++i)
   {
     EventInfo event = parseEvent(const_cast<const uint8_t*>(&(*input[i])[0]), input[i]->size());
-    const std::vector<std::vector<double> > dimensions = generateDimensions(event);
-    const std::vector<TrackPure> grid = generateGrid<TrackPure>(dimensions, generateTrackFromIndex);
+    const std::vector<std::vector<double> > dimDx = {
+      generateUniformDimension(-1, 1, 198),
+      generateUniformDimension(0, 0, 1),
+      generateUniformDimension(-0.3, 0.3, 198),
+      generateUniformDimension(0, 0, 1)
+    };
+    const std::vector<std::vector<double> > dimDy = {
+      generateUniformDimension(0, 0, 1),
+      generateUniformDimension(-1, 1, 198),
+      generateUniformDimension(0, 0, 1),
+      generateUniformDimension(-0.3, 0.3, 198)
+    };
+
+    std::cerr << "Gx" << std::endl;
+    const std::vector<TrackPure> gridDx = generateGrid<TrackPure>(dimDx, generateTrackFromIndex);
+    std::cerr << "Gy" << std::endl;
+    const std::vector<TrackPure> gridDy = generateGrid<TrackPure>(dimDy , generateTrackFromIndex);
+
     const std::vector<Hit>& hits = event.hits;
-    //const std::vector<double> responses = calculateResponses(grid, hits, RETINA_SHARPNESS_COEFFICIENT);
-    //const std::vector<TrackPure> restored = restoreTracks(dimensions, grid, responses);
-    const std::vector<TrackPure> restored;
-    
-    /*{
-      std::ofstream myfile;
-      myfile.open ("tracks.csv");
-      myfile << "x0,y0,dx,dy,reps" << std::endl;
-      for (const TrackPure& track: restored)
-      {
-        myfile << track.xOnZ0 << "," << track.yOnZ0 << "," 
-          << track.dxOverDz << "," << track.dyOverDz << ","
-          << calculateResponses({track}, hits, RETINA_SHARPNESS_COEFFICIENT)[0]<< std::endl;
-      }
-      myfile.close();
-    }*/
-    std::vector<TrackPure> maxims;
+    std::cerr << "calc" << std::endl;
+    const std::vector<double> responsesDx = calculateResponses(gridDx, hits, getDistanceDx, RETINA_SHARPNESS_COEFFICIENT);
+    std::cerr << "restore" << std::endl;
+    const std::vector<TrackPure> restoredDx = restoreTracks(dimDx, gridDx, responsesDx);
 
+    std::cerr << "calc" << std::endl;
+    const std::vector<double> responsesDy = calculateResponses(gridDy, hits, getDistanceDy, RETINA_SHARPNESS_COEFFICIENT);
+    std::cerr << "restore" << std::endl;
+    const std::vector<TrackPure> restoredDy = restoreTracks(dimDy, gridDy, responsesDy);
+    std::cerr << "output" << std::endl;
     {
-      std::ofstream myfile;
-      myfile.open ("maxims.csv");
-      myfile << "x0,y0,dx,dy,reps" << std::endl;
-      std::default_random_engine generator;
-      std::normal_distribution<double> dx(0, 0.3);
-      std::normal_distribution<double> x0(0, 10);
-      std::uniform_int_distribution<int> distribution(0, hits.size());  
-
-      int cnt = 0, nw = 0;
-      while (cnt < 10000 && maxims.size() < 10000)
-      //for (size_t i = 0 ; i < )
+      outputBest(restoredDx, hits, getDistanceDx, "dx.txt");
+      outputBest(restoredDy, hits, getDistanceDy, "dy.txt");      
+    }
+    std::cerr << "in Find" << std::endl;
+    std::vector<TrackPure> tracks;
+    for (const TrackPure& dx : restoredDx)
+    {
+      std::vector<std::pair<double, Hit> > xHits = findHitsOnSensor(hits, dx, getDistance) ;
+      for (const TrackPure& dy: restoredDy)
       {
-        TrackPure track;
+        std::vector<std::pair<double, Hit> > yHits = findHitsOnSensor(hits, dx, getDistance) ;
+        int intersection = 0;
+
+        for (int j = 0; j < xHits.size(); j++)
         {
-          track = makeLocalMaximum(
-            TrackPure(
-              x0(generator),
-              x0(generator),
-              dx(generator),
-              dx(generator)
-            ),
-            hits, 
-            RETINA_SHARPNESS_COEFFICIENT
-            );
-        }
-        if (std::all_of(maxims.begin(), maxims.end(), 
-          [&](TrackPure& old)
+          if (xHits[j].first + yHits[j].first < PARAM_TOLERANCE && xHits[j].second.id == yHits[j].second.id)
           {
-            if (fabs(old.xOnZ0 - track.xOnZ0) > 0.1)
-              return true;
-            if (fabs(old.yOnZ0 - track.yOnZ0) > 0.1)
-              return true;
-            if (fabs(old.dxOverDz - track.dxOverDz) > 0.01)
-              return true;
-            if (fabs(old.dyOverDz - track.dyOverDz) > 0.01)
-              return true;
-            return false;
-          }) 
-          )
-        {
-          maxims.push_back(track);
-          nw = 0;
-          myfile << track.xOnZ0 << "," << track.yOnZ0 << "," 
-            << track.dxOverDz << "," << track.dyOverDz << ","
-            << calculateResponses({track}, hits, RETINA_SHARPNESS_COEFFICIENT)[0]<< std::endl;
+            intersection++;
+          }
         }
-        else
+        if (intersection > 2)
         {
-          nw++;
+          tracks.push_back(dx + dy);
         }
-        if (++cnt % 10 == 0)
-        {
-          std::cerr << cnt << " tracks procceed:" << maxims.size() <<  std::endl;
-        }
-       }
-      
-    
-      myfile.close();
+      }
     }
-    const std::vector<double> resp = calculateResponses(maxims, hits, RETINA_SHARPNESS_COEFFICIENT);
-    std::vector<TrackPure> final;
-    {
-      double threshold = -1;// getQuatile(resp, 0);
-      for(size_t i = 0; i < maxims.size(); i++)
-        if (resp[i] > threshold)
-          final.push_back(maxims[i]);
-    }
-    const std::vector<Track> tracksWithHits = findHits(final, hits);
-    auto answer = putTracksInOutputFormat(hits, tracksWithHits);
+    auto answer = putTracksInOutputFormat(hits, findHits(tracks, hits));
     output[i] = answer;
     //printSolution(tracksWithHits, hits, DEBUG);
   }

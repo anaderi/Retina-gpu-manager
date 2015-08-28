@@ -1,5 +1,6 @@
 #include <stdexcept>
 #include <algorithm>
+#include <iostream>
 
 #include "Grid.h"
 
@@ -63,7 +64,15 @@ int multiIndexToIndex(
   int index = multiIndex[multiIndex.size() - 1];
   for (int i = multiIndex.size() - 2; i >= 0; --i)
   {
-    index = index * dimensions[i + 1].size() + multiIndex[i];
+    index = index * dimensions[i].size() + multiIndex[i];
+  }
+  if (index > calculateGridSize(dimensions, 0))
+  {
+    for (int i = 0; i < multiIndex.size(); ++i)
+    {
+      std::cerr << multiIndex[i] << " ";
+    }
+    std::cerr << std::endl;
   }
   return index;
 }
@@ -88,4 +97,9 @@ std::vector<int> generateNeighboursIndexes(
   }
   return neighbours;
 }
-
+/*
+int main()
+{
+  
+}
+*/

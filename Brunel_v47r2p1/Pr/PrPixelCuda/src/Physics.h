@@ -77,6 +77,8 @@ struct EventInfo
 };
 
 double getDistance(const TrackPure& track, const Hit& hit) noexcept;
+double getDistanceDx(const TrackPure& track, const Hit& hit) noexcept;
+double getDistanceDy(const TrackPure& track, const Hit& hit) noexcept;
 
 std::vector<std::vector<double> > generateDimensions(const EventInfo& event);
 

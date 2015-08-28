@@ -41,6 +41,16 @@ double getDistance(const TrackPure& track, const Hit& hit) noexcept
          square(hit.y - track.yOnZ0 - track.dyOverDz * hit.z);
 }
 
+double getDistanceDx(const TrackPure& track, const Hit& hit) noexcept
+{
+  return square(hit.x - track.xOnZ0 - track.dxOverDz * hit.z);
+}
+
+double getDistanceDy(const TrackPure& track, const Hit& hit) noexcept
+{
+  return square(hit.y - track.yOnZ0 - track.dyOverDz * hit.z);
+}
+
 std::vector<std::vector<double> > generateDimensions(const EventInfo& event)
 {
   return std::vector<std::vector<double> > {
