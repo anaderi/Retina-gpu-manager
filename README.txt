@@ -1,3 +1,6 @@
+This repository was originaly forked from the CERN repository.
+https://gitlab.cern.ch/dcampora/lhcb-gpu-manager
+
 GPU Manager
 ===========
 
