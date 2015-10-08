@@ -1,7 +1,0 @@
-#-- start of cuda_library -----------------
-
-$($(CONSTITUENT)_output)$(NAME).o :: $(FULLNAME)
-	$(cuda_echo) $^
-	$(cuda_bin) --gpu-architecture $(cuda_arch) -std=c++11 --compiler-bindir $(cpp) --compiler-options '$(includes) -fPIC $(cudacppflags)' $(cudaflags) --output-file $@ --compile $^
-
-#-- end of cuda_library ------------------

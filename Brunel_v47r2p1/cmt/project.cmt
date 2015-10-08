@@ -1,6 +1,0 @@
-project Brunel_v47r2p1
-
-use BRUNEL BRUNEL_v47r2p1 
-
-build_strategy with_installarea
-structure_strategy without_version_directory
